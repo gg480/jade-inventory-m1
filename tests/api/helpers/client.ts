@@ -67,3 +67,32 @@ export async function apiPut<T = unknown>(path: string, body?: unknown): Promise
 export async function apiDelete<T = unknown>(path: string): Promise<ApiResponse<T>> {
   return request<T>('DELETE', path);
 }
+
+/**
+ * 上传文件（multipart/form-data）
+ */
+export async function apiUpload<T = unknown>(
+  path: string,
+  fileContent: string,
+  fileName: string,
+  extraFields?: Record<string, string>
+): Promise<ApiResponse<T>> {
+  const url = `${BASE_URL}${path}`;
+  const formData = new FormData();
+  const blob = new Blob([fileContent], { type: 'text/csv' });
+  formData.append('file', blob, fileName);
+
+  if (extraFields) {
+    for (const [key, value] of Object.entries(extraFields)) {
+      formData.append(key, value);
+    }
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const json = await response.json();
+  return json as ApiResponse<T>;
+}
