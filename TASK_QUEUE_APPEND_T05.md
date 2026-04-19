@@ -173,7 +173,7 @@ status: 已完成
 
 ### T05-d 搭建 API 测试基础设施
 ```
-status: 待执行
+status: 已完成
 依赖: T05-c
 涉及文件:
   - tests/api/helpers/setup.ts（新建）
@@ -230,6 +230,7 @@ status: 待执行
   - status=已完成
 ```
 备注: ___
+备注: T05-d完成(2026-04-19)。引入vitest(v4.1.4)，新建vitest.config.ts(test.db独立数据库)。setup.ts: beforeAll/afterAll钩子+resetDb()+seedBaseDicts()。client.ts: apiGet/apiPost/apiPatch/apiPut/apiDelete封装。factories.ts: createMinimalItem/createFullItem/createMaterial/createType/createCraft/createSellingPoint/createAudience/createCustomer工厂函数。health.test.ts: 6个测试全部通过。package.json新增test:api脚本。AGENTS.md追加Testing章节。
 
 ---
 
@@ -592,9 +593,9 @@ status: 阻塞-依赖未完成
 
 ```
 T05 系列任务数: 11
-已完成: 3
-当前执行: T05-d
-下一个: T05-d
+已完成: 4
+当前执行: T05-e
+下一个: T05-e
 ```
 
 ---
