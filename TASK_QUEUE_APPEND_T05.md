@@ -17,7 +17,7 @@
 
 ### T05-a 新建健康检查 API
 ```
-status: 待执行
+status: 已完成
 依赖: 无
 涉及文件:
   - src/app/api/health/route.ts（新建）
@@ -58,7 +58,7 @@ status: 待执行
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T05-a完成(2026-04-19)。新建GET /api/health路由，返回{code:0,data:{status:'ok',timestamp,version,db:{connected:true,itemCount,dictMaterialCount},uptime,responseTime},message:'ok'}。数据库连接失败时返回code=500+error信息。不做认证。实测22ms响应。验收：curl http://localhost:5000/api/health 返回正确JSON(44 items, 39 materials)。
 
 ---
 
@@ -590,9 +590,9 @@ status: 阻塞-依赖未完成
 
 ```
 T05 系列任务数: 11
-已完成: 0
-当前执行: 无
-下一个: T05-a
+已完成: 1
+当前执行: T05-b
+下一个: T05-b
 ```
 
 ---
