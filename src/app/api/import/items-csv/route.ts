@@ -147,6 +147,7 @@ export async function POST(req: NextRequest) {
       skip_empty_lines: true,
       trim: true,
       bom: true,
+      relax_column_count: true, // 容忍列数不一致（用户CSV常有缺失列）
     });
 
     // Build caches for faster lookup
@@ -249,19 +250,55 @@ export async function POST(req: NextRequest) {
         }
 
         // Dedup check: skip if same name + costPrice + certNo already exists
-        if (quantity === 1) {
-          const existing = await db.item.findFirst({
-            where: {
-              name,
-              costPrice: cost && !isNaN(cost) ? cost : null,
-              certNo: certNo || null,
-              isDeleted: false,
-            },
-          });
-          if (existing) {
-            duplicated++;
-            continue; // Skip silently for dedup
+        // For quantity > 1, check if the exact same number of items already exist
+        const existingCount = await db.item.count({
+          where: {
+            name,
+            costPrice: cost && !isNaN(cost) ? cost : null,
+            certNo: certNo || null,
+            isDeleted: false,
+          },
+        });
+        if (existingCount > 0) {
+          if (existingCount >= quantity) {
+            // All items already exist, skip entirely
+            duplicated += quantity;
+            continue;
           }
+          // Some items exist: only create the difference
+          const remaining = quantity - existingCount;
+          duplicated += existingCount;
+          // Continue to create only 'remaining' items below
+          // We adjust quantity for the creation loop
+          // (We'll create 'remaining' items instead of 'quantity')
+          // Fall through to creation with adjusted count
+          const notesWithKey = [
+            matchKey ? `[MK:${matchKey}]` : '',
+            notes,
+          ].filter(Boolean).join(' ') || null;
+
+          for (let q = 0; q < remaining; q++) {
+            const finalSkuCode = await generateSkuCode(materialId, typeId);
+            await db.item.create({
+              data: {
+                skuCode: finalSkuCode,
+                name: name,
+                materialId: materialId,
+                typeId: typeId,
+                costPrice: cost && !isNaN(cost) ? cost : null,
+                allocatedCost: cost && !isNaN(cost) ? cost : null,
+                sellingPrice: price && !isNaN(price) ? price : 0,
+                counter: counter && !isNaN(counter) ? counter : null,
+                purchaseDate: parsedDate,
+                origin: origin || null,
+                certNo: certNo || null,
+                notes: notesWithKey,
+                status: 'in_stock',
+              },
+            });
+          }
+          success += remaining;
+          continue;
         }
 
         // Create items (one per quantity, each with same unit costPrice)
@@ -282,7 +319,7 @@ export async function POST(req: NextRequest) {
               typeId: typeId,
               costPrice: cost && !isNaN(cost) ? cost : null,
               allocatedCost: cost && !isNaN(cost) ? cost : null,
-              sellingPrice: price && !isNaN(price) ? price : null,
+              sellingPrice: price && !isNaN(price) ? price : 0,
               counter: counter && !isNaN(counter) ? counter : null,
               purchaseDate: parsedDate,
               origin: origin || null,

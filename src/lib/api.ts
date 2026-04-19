@@ -52,6 +52,33 @@ export const dictsApi = {
     request<any>(`/dicts/tags/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteTag: (id: number) =>
     request<any>(`/dicts/tags/${id}`, { method: 'DELETE' }),
+
+  getCrafts: (includeInactive = false) =>
+    request<any[]>(`/dicts/crafts?include_inactive=${includeInactive}`),
+  createCraft: (data: any) =>
+    request<any>('/dicts/crafts', { method: 'POST', body: JSON.stringify(data) }),
+  updateCraft: (id: number, data: any) =>
+    request<any>(`/dicts/crafts/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteCraft: (id: number) =>
+    request<any>(`/dicts/crafts/${id}`, { method: 'DELETE' }),
+
+  getSellingPoints: (includeInactive = false) =>
+    request<any[]>(`/dicts/selling-points?include_inactive=${includeInactive}`),
+  createSellingPoint: (data: any) =>
+    request<any>('/dicts/selling-points', { method: 'POST', body: JSON.stringify(data) }),
+  updateSellingPoint: (id: number, data: any) =>
+    request<any>(`/dicts/selling-points/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteSellingPoint: (id: number) =>
+    request<any>(`/dicts/selling-points/${id}`, { method: 'DELETE' }),
+
+  getAudiences: (includeInactive = false) =>
+    request<any[]>(`/dicts/audiences?include_inactive=${includeInactive}`),
+  createAudience: (data: any) =>
+    request<any>('/dicts/audiences', { method: 'POST', body: JSON.stringify(data) }),
+  updateAudience: (id: number, data: any) =>
+    request<any>(`/dicts/audiences/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteAudience: (id: number) =>
+    request<any>(`/dicts/audiences/${id}`, { method: 'DELETE' }),
 };
 
 // ========== Config ==========
@@ -106,6 +133,10 @@ export const itemsApi = {
     request<any>(`/items/${itemId}/images?image_id=${imageId}`, { method: 'DELETE' }),
   setCoverImage: (itemId: number, imageId: number) =>
     request<any>(`/items/${itemId}/images`, { method: 'PUT', body: JSON.stringify({ imageId }) }),
+  updateStatus: (id: number, data: { priorityTier?: string; shootingStatus?: string; contentStatus?: string }) =>
+    request<any>(`/items/${id}/status`, { method: 'PATCH', body: JSON.stringify(data) }),
+  getStatusSummary: () => request<any>('/items/stats/status-summary'),
+  exportForAI: (id: number) => request<any>(`/items/${id}/export-for-ai`),
 };
 
 // ========== Sales ==========

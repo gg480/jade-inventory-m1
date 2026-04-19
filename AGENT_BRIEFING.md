@@ -145,35 +145,23 @@ git push origin dev
 
 ## 项目现状（每次人工更新这个区块）
 
-**最后更新**：2026-04-19
-
-**代码仓库**: https://github.com/gg480/jade-inventory-m1 （基于 newjade 代码库新建）
-**原始仓库**: https://github.com/gg480/newjade （上游代码来源）
+**最后更新**：2026-04-18
 
 **当前已完成功能**：
-- 商品 CRUD（基础字段）+ SKU自动生成（ASCII纯数字编码）
-- 批次管理 + 成本分摊
-- 销售/退货记录 + 套装销售
-- 客户管理 + VIP分级
-- 操作日志（全审计）
-- 图片上传（本地存储 + Docker Volume）
-- 字典管理（材质/器型/标签）+ 智能推断
-- 贵金属市价 + 调价预览
-- CSV 导入导出（含数量列/匹配码/智能推断/去重）
-- Docker 部署（极空间 NAS + standalone模式 + entrypoint）
-- 系统配置（店铺名/密码/备份）
-- 登录认证（数据库session + 限速）
-- Dashboard看板（23+图表 + 聚合API）
-- 移动端全面适配 + 暗色模式
-
-**已知安全缺陷**（需在M1后修复）：
-- ❌ 无 API 鉴权中间件（所有API裸露）
-- ❌ 密码明文存储与比较（无PBKDF2哈希）
-- ❌ auth.ts 使用 Math.random 生成 token（应用 crypto）
+- 商品 CRUD（基础字段）
+- 批次管理
+- 销售/退货记录
+- 客户管理
+- 操作日志
+- 图片上传（本地存储）
+- 字典管理（材质/器型/标签）
+- 贵金属市价
+- CSV 导入导出
+- Docker 部署（极空间 NAS）
+- 系统配置（店铺名等）
 
 **当前卡点**：
 - 历史数据批量导入待验证（见 TASK_QUEUE 第一优先级）
-- items-csv/route.ts 使用 new PrismaClient() 而非共享实例
 
 **当前 dev 分支状态**：
 - 与 main 同步，可以直接开工

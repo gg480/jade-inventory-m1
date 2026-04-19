@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
-import { Trash2, Star, Upload, ImageIcon, ZoomIn, ImageOff } from 'lucide-react';
+import { Trash2, Star, Upload, ImageIcon, ZoomIn, ImageOff, Copy, Download } from 'lucide-react';
 
 // Image with loading state helper
 function ImageWithLoading({ src, alt, className, onClick }: { src: string; alt: string; className?: string; onClick?: () => void }) {
@@ -51,6 +51,7 @@ function ItemDetailDialog({ itemId, open, onOpenChange }: { itemId: number | nul
   const [uploading, setUploading] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const fetchDetail = useCallback(async (id: number) => {
     setLoading(true);
@@ -120,6 +121,45 @@ function ItemDetailDialog({ itemId, open, onOpenChange }: { itemId: number | nul
   };
 
   const images = item?.images || [];
+
+  async function handleCopyAIFeed() {
+    if (!itemId) return;
+    setExporting(true);
+    try {
+      const data = await itemsApi.exportForAI(itemId);
+      const json = JSON.stringify(data, null, 2);
+      await navigator.clipboard.writeText(json);
+      toast.success('已复制到剪贴板');
+    } catch (e: any) {
+      toast.error(e.message || '复制失败');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleDownloadJSON() {
+    if (!itemId) return;
+    setExporting(true);
+    try {
+      const data = await itemsApi.exportForAI(itemId);
+      const json = JSON.stringify(data, null, 2);
+      const skuCode = data['SKU编码'] || 'unknown';
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${skuCode}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('JSON 文件已下载');
+    } catch (e: any) {
+      toast.error(e.message || '下载失败');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <>
@@ -270,6 +310,50 @@ function ItemDetailDialog({ itemId, open, onOpenChange }: { itemId: number | nul
                 <div><span className="text-muted-foreground">创建时间:</span> {item.createdAt ? new Date(item.createdAt).toLocaleDateString('zh-CN') : '-'}</div>
               </div>
 
+              {/* Content Attributes */}
+              {(() => {
+                const contentFields: { label: string; value: string | null; preWrap?: boolean; privateNote?: boolean }[] = [
+                  { label: '主色', value: item.mainColor },
+                  { label: '副色', value: item.subColor },
+                  { label: '年代款式', value: item.era },
+                  { label: '价格带', value: item.priceRange },
+                  { label: '故事点', value: item.storyPoints, preWrap: true },
+                  { label: '经营笔记（私用）', value: item.operationNote, preWrap: true, privateNote: true },
+                ];
+                const nonEmpty = contentFields.filter(f => f.value);
+                const hasSellingPoints = item.sellingPoints && item.sellingPoints.length > 0;
+                const hasAudiences = item.audiences && item.audiences.length > 0;
+                if (nonEmpty.length === 0 && !hasSellingPoints && !hasAudiences) return null;
+                return (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-sm font-medium mb-2">内容属性</p>
+                      <div className="space-y-2">
+                        {nonEmpty.map(f => (
+                          <div key={f.label}>
+                            <span className={`text-sm text-muted-foreground ${f.privateNote ? 'italic' : ''}`}>{f.label}：</span>
+                            <span className={`text-sm ${f.preWrap ? 'whitespace-pre-wrap' : ''}`}>{f.value}</span>
+                          </div>
+                        ))}
+                        {hasSellingPoints && (
+                          <div>
+                            <span className="text-sm text-muted-foreground">卖点：</span>
+                            <span className="text-sm">{item.sellingPoints.map((sp: any) => sp.name).join('、')}</span>
+                          </div>
+                        )}
+                        {hasAudiences && (
+                          <div>
+                            <span className="text-sm text-muted-foreground">目标人群：</span>
+                            <span className="text-sm">{item.audiences.map((a: any) => a.name).join('、')}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+
               {/* Spec Details */}
               {item.spec && (
                 <>
@@ -330,7 +414,17 @@ function ItemDetailDialog({ itemId, open, onOpenChange }: { itemId: number | nul
           ) : (
             <div className="py-8 text-center text-muted-foreground">未找到货品信息</div>
           )}
-          <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>关闭</Button></DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleCopyAIFeed} disabled={exporting || !item}>
+                <Copy className="h-4 w-4 mr-1" />复制AI喂料
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadJSON} disabled={exporting || !item}>
+                <Download className="h-4 w-4 mr-1" />下载JSON
+              </Button>
+            </div>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>关闭</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

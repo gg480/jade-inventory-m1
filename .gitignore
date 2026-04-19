@@ -53,5 +53,8 @@ test
 prompt
 
 server.log
+# Database files
+*.db
+
 # Skills directory
-/skills/
+/skills/*.db
