@@ -299,7 +299,7 @@ status: 已完成
 
 ### T05-f 为 T02 系列补 API 测试
 ```
-status: 待执行
+status: 已完成
 依赖: T05-d（可与 T05-e 并行）
 涉及文件:
   - tests/api/dicts-craft.test.ts（新建）
@@ -327,7 +327,7 @@ status: 待执行
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T05-f完成(2026-04-19)。3个测试文件共50个测试（craft 18 + selling-points 16 + audiences 16）。覆盖：GET种子数据验证/isActive过滤/include_inactive/数据结构/sortOrder排序、POST新建/sortOrder默认值/重复名400、PATCH更新名称/sortOrder/description/停用/启用/不存在id、DELETE无关联软删除/有关联返回400。总API测试数95个，全部通过。commit: e5971fd
 
 ---
 
@@ -594,9 +594,9 @@ status: 阻塞-依赖未完成
 
 ```
 T05 系列任务数: 11
-已完成: 5
-当前执行: T05-f
-下一个: T05-f
+已完成: 6
+当前执行: T05-g
+下一个: T05-g
 ```
 
 ---
