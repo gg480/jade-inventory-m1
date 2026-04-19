@@ -333,7 +333,7 @@ status: 已完成
 
 ### T05-g 为 CSV 导入补 API 测试
 ```
-status: 待执行
+status: 已完成
 依赖: T05-d
 涉及文件:
   - tests/api/imports.test.ts（新建）
@@ -374,11 +374,7 @@ status: 待执行
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
-
----
-
-### T05-h 编写数据完整性检查
+备注: T05-g完成(2026-04-19)。新建tests/api/imports.test.ts 13个测试覆盖库存CSV导入(7个)和销售CSV导入(6个)。库存：合法10条导入、重复跳过、部分重复、空材质/器型、数量=3创建3件、匹配码存notes、空CSV。销售：合法匹配、匹配码优先、无匹配自动创建sold Item、自动创建客户、缺成交价行失败、空CSV。新增apiUpload函数支持multipart/form-data。独立测试脚本imports-standalone-test.ts备用。总API测试108个，全部通过。commit: 78c5327
 ```
 status: 待执行
 依赖: T05-d
@@ -594,9 +590,9 @@ status: 阻塞-依赖未完成
 
 ```
 T05 系列任务数: 11
-已完成: 6
-当前执行: T05-g
-下一个: T05-g
+已完成: 7
+当前执行: T05-h
+下一个: T05-h
 ```
 
 ---
