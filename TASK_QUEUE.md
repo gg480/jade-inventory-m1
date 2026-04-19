@@ -21,7 +21,7 @@
 
 ### T00-a 验证并修复历史库存数据 CSV 导入
 ```
-status: 待执行
+status: 已完成
 依赖: 无
 涉及文件:
   - src/app/api/import/items-csv/route.ts
@@ -47,13 +47,13 @@ status: 待执行
   - 更新 CHANGELOG.md
   - 更新本任务 status=已完成
 ```
-备注: ___
+备注: T00-a完成(2026-04-19)。修复3个问题：1.csv-parse添加relax_column_count容错列数不一致 2.去重逻辑从仅qty=1扩展到所有数量，qty>1时按差异量创建 3.sellingPrice为null时默认0（schema非空约束）。验收：12条CSV首次导入19件成功、二次全去重、空材质/器型自动创建未分类、qty>=2创建多件Item均通过。
 
 ---
 
 ### T00-b 验证并修复历史销售数据 CSV 导入
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T00-a 必须先完成
 涉及文件:
   - src/app/api/import/sales/route.ts
@@ -77,7 +77,7 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - 更新本任务 status=已完成
 ```
-备注: ___
+备注: T00-b完成(2026-04-19)。修复3个问题：1.csv-parse添加relax_column_count 2.匹配码查找优先in_stock状态Item 3.自动创建Item时保存匹配码到notes。验收：6条销售CSV全部成功导入，匹配码关联/名称模糊匹配/自动创建客户/Item状态变sold/自动创建Item均通过。
 
 ---
 
@@ -88,7 +88,7 @@ status: 阻塞-依赖未完成
 
 ### T01-a Prisma schema 新增商品内容属性字段
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T00-a, T00-b 完成后开始
 涉及文件:
   - prisma/schema.prisma
@@ -124,13 +124,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T01-a完成(2026-04-19)。Item model新增8个可空字段(craftId/era/mainColor/subColor/priceRange/storyPoints/operationNote/extraData)，origin和certNo已存在故跳过。新增@@index([priceRange])。已执行npx prisma db push成功。
 
 ---
 
 ### T01-b 更新 Item 创建 API 接受新字段
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T01-a
 涉及文件:
   - src/app/api/items/route.ts
@@ -158,13 +158,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T01-b完成(2026-04-19)。POST /api/items新增提取craftId/era/mainColor/subColor/priceRange/storyPoints/operationNote/extraData字段。校验：priceRange仅接受走量/中档/精品，storyPoints/operationNote上限5000字符。传到prisma.item.create。
 
 ---
 
 ### T01-c 更新 Item 编辑 API 接受新字段
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T01-b
 涉及文件:
   - src/app/api/items/[id]/route.ts
@@ -182,13 +182,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T01-c完成(2026-04-19)。PUT /api/items/[id] 同样校验priceRange/storyPoints/operationNote，craftId转parseInt。GET默认返回新字段（Prisma默认全量返回）。trackedFields新增7个新字段用于操作日志。
 
 ---
 
 ### T01-d 更新 item-create-dialog 显示新字段
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T01-c
 涉及文件:
   - src/components/inventory/item-create-dialog.tsx
@@ -229,13 +229,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T01-d完成(2026-04-19)。新增Tabs组件(基础信息/内容属性)。「内容属性」Tab包含：主色/副色、产地/年代款式、证书编号/价格带(Select)、故事点(Textarea 4行)、经营笔记(Textarea 3行)。产地和证书编号从基础信息Tab移到内容属性Tab。两种模式(高货/通货)均支持。表单提交时新字段加入API请求body。
 
 ---
 
 ### T01-e 更新 item-detail-dialog 展示新字段
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T01-d
 涉及文件:
   - src/components/inventory/item-detail-dialog.tsx
@@ -259,13 +259,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T01-e完成(2026-04-19)。新增"内容属性"section显示主色/副色/年代款式/价格带/故事点/经营笔记。所有新字段为空时整个section不显示。有值才显示。storyPoints和operationNote使用whitespace-pre-wrap保留换行。经营笔记标签标注"私用"。
 
 ---
 
 ### T01-f 新增 constants.ts 枚举常量
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T01-b
 涉及文件:
   - src/lib/constants.ts（不存在则新建）
@@ -289,7 +289,7 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T01-f完成(2026-04-19)。新建src/lib/constants.ts，定义PRICE_RANGES=['走量','中档','精品'] as const及PriceRange类型。T01-b和T01-c中硬编码的VALID_PRICE_RANGES改为引用PRICE_RANGES常量，使用(PRICE_RANGES as readonly string[]).includes()。
 
 ---
 
@@ -299,7 +299,7 @@ status: 阻塞-依赖未完成
 
 ### T02-a 新建 DictCraft 工艺字典表
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T01-a 全系列完成
 涉及文件:
   - prisma/schema.prisma
@@ -344,13 +344,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T02-a完成(2026-04-19)。DictCraft model及Item.craft relation已在schema中存在（由前序任务预置）。seed-base.ts已含8种默认工艺（手工雕刻/机雕/半手工/素面/镂空雕/浮雕/圆雕/未知）。GET/POST /api/dicts/crafts及PATCH/DELETE /api/dicts/crafts/[id]路由已存在并功能正常。已执行DATABASE_URL="file:./prisma/db/custom.db" npx prisma db push成功。
 
 ---
 
 ### T02-b item-create-dialog 工艺下拉联动
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T02-a
 涉及文件:
   - src/components/inventory/item-create-dialog.tsx
@@ -373,13 +373,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T02-b完成(2026-04-19)。api.ts已有dictsApi.getCrafts/createCraft/updateCraft/deleteCraft方法。item-create-dialog.tsx「内容属性」Tab已有工艺Select下拉（从/api/dicts/crafts动态加载isActive=true的选项）。提交时craftId已包含在API请求body中。
 
 ---
 
 ### T02-c settings-tab 新增工艺字典管理页
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T02-a
 涉及文件:
   - src/components/inventory/settings-tab.tsx
@@ -401,13 +401,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T02-c完成(2026-04-19)。settings-tab.tsx字典管理区域新增工艺Card（Wrench图标，橙色边框），展示名称/描述/排序/状态列，支持编辑/停用/启用操作。新增创建工艺Dialog和编辑工艺Dialog，包含名称/描述/排序/状态字段。与材质/器型管理交互模式一致。
 
 ---
 
 ### T02-d 新建卖点和人群字典表及 API
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T02-a 完成（与 T02-b/T02-c 可并行）
 涉及文件:
   - prisma/schema.prisma
@@ -478,13 +478,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T02-d完成(2026-04-21)。DictSellingPoint/ItemSellingPoint/DictAudience/ItemAudience模型已在schema中。已执行DATABASE_URL="file:./db/custom.db" npx prisma db push成功。seed-base.ts已含9种默认卖点(送礼/自戴/收藏/投资/孤品/性价比/名家出品/完美无瑕/稀有料子)和8种默认人群(年轻女性/中年女性/中年男性/资深藏家/新手入门/送长辈/送爱人/送朋友)。4个API路由已存在：GET/POST /api/dicts/selling-points、PATCH/DELETE /api/dicts/selling-points/[id]、GET/POST /api/dicts/audiences、PATCH/DELETE /api/dicts/audiences/[id]。
 
 ---
 
 ### T02-e item-create-dialog 卖点和人群多选
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T02-d
 涉及文件:
   - src/components/inventory/item-create-dialog.tsx
@@ -517,7 +517,7 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T02-e完成(2026-04-21)。item-create-dialog已有卖点和人群多选Checkbox组件（ContentAttributesTab），highValueForm和batchForm均含sellingPointIds/audienceIds数组。POST /api/items已支持sellingPointIds/audienceIds，创建Item后批量插入ItemSellingPoint/ItemAudience关联。PUT /api/items/[id]已支持sellingPointIds/audienceIds的replace语义（先删除旧关联再插入新关联）。GET /api/items/[id]响应已包含sellingPoints:[{id,name}]和audiences:[{id,name}]。item-detail-dialog内容属性区域已显示卖点和目标人群。
 
 ---
 
@@ -527,7 +527,7 @@ status: 阻塞-依赖未完成
 
 ### T03-a schema 新增状态字段和 constants
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T01-a 完成
 涉及文件:
   - prisma/schema.prisma
@@ -572,13 +572,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T03-a完成(2026-03-05)。Item model新增priorityTier(默认未定)/shootingStatus(默认未拍)/contentStatus(默认未生产)及4个时间戳字段firstShotAt/lastShotAt/firstPublishAt/lastPublishAt。新增3个索引。constants.ts新增PRIORITY_TIERS/SHOOTING_STATUSES/CONTENT_STATUSES常量及类型。已执行DATABASE_URL="file:./prisma/db/custom.db" npx prisma db push成功。
 
 ---
 
 ### T03-b 新增状态专用 PATCH 路由
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T03-a
 涉及文件:
   - src/app/api/items/[id]/status/route.ts（新建）
@@ -610,13 +610,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T03-b完成(2026-03-05)。新建PATCH /api/items/[id]/status路由，入参priorityTier/shootingStatus/contentStatus（至少传一个）。校验传入值在constants枚举内否则400。shootingStatus从未拍变为其他时自动填firstShotAt，任何shootingStatus变化更新lastShotAt。contentStatus变为已发布或多平台发布时自动填firstPublishAt+更新lastPublishAt。写入OperationLog(action=update_status)。
 
 ---
 
 ### T03-c 列表页新增状态筛选和状态列
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T03-b
 涉及文件:
   - src/app/api/items/route.ts
@@ -636,7 +636,7 @@ status: 阻塞-依赖未完成
      - 档位：彩色 Badge（A=红/B=橙/C=灰/未定=蓝灰）
      - 拍摄状态：Badge
      - 内容状态：Badge
-     建议在现有"列显示"控制里加这三列的开关（如果有该功能的话）
+     建议在现有“列显示”控制里加这三列的开关（如果有该功能的话）
 
 验收:
   - 筛选 priorityTier=A 只显示 A 档商品
@@ -649,13 +649,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T03-c完成(2026-03-05)。GET /api/items新增priorityTier/shootingStatus/contentStatus查询参数，AND关系过滤。inventory-tab.tsx「更多筛选」区域新增3个Select（档位/拍摄状态/内容状态），重置按钮和ActiveFilterTags均已更新。表格新增3列Badge：档位(A红/B橙/C灰/未定蓝灰)、拍摄状态(蓝色)、内容状态(紫色)。
 
 ---
 
 ### T03-d 新建商品时自动预填档位
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T03-b
 涉及文件:
   - src/components/inventory/item-create-dialog.tsx
@@ -680,13 +680,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T03-d完成(2026-03-05)。item-create-dialog.tsx高货模式成本价输入时自动预填档位(costPrice≥5000→A, 500-4999→B, <500→C, 未填→未定)，用户可手动覆盖不被后续成本价变化覆盖。内容属性Tab新增档位Select下拉(A/B/C/未定)。highValueForm和batchForm均新增priorityTier字段。POST /api/items新增priorityTier入参和校验(PRIORITY_TIERS)。
 
 ---
 
 ### T03-e 状态统计 API
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T03-a
 涉及文件:
   - src/app/api/items/stats/status-summary/route.ts（新建）
@@ -716,7 +716,7 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T03-e完成(2026-03-05)。新建GET /api/items/stats/status-summary路由，使用Prisma groupBy按priorityTier/shootingStatus/contentStatus分组计数。返回格式{code:0,data:{byPriority,byShooting,byContent,total}}。确保所有枚举值都有对应key(初始0)，未预期值归入默认值。
 
 ---
 
@@ -726,7 +726,7 @@ status: 阻塞-依赖未完成
 
 ### T04-a 新建单 SKU 导出 API
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T02-e, T03-a
 涉及文件:
   - src/app/api/items/[id]/export-for-ai/route.ts（新建）
@@ -784,13 +784,13 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T04-a完成(2026-03-05)。新建GET /api/items/[id]/export-for-ai路由，返回结构化JSON(中文字段名)。包含SKU编码/商品名称/材质大类/材质细类/器型/工艺/产地/年代款式/证书编号/主色/副色/尺寸/重量/价格带/建议售价/卖点标签/目标人群/故事点/图片(主图+所有图片)/状态(档位/拍摄状态/内容状态)/最后更新。不返回operationNote和extraData。所有字段无值时返回null而非undefined。commit: 059a779
 
 ---
 
 ### T04-b 列表页新增"导出 AI 喂料"按钮
 ```
-status: 阻塞-依赖未完成
+status: 已完成
 依赖: T04-a
 涉及文件:
   - src/components/inventory/item-detail-dialog.tsx
@@ -814,7 +814,7 @@ status: 阻塞-依赖未完成
   - 更新 CHANGELOG.md
   - status=已完成
 ```
-备注: ___
+备注: T04-b完成(2026-03-05)。api.ts新增itemsApi.exportForAI(id)方法。item-detail-dialog.tsx底部新增"复制AI喂料"(Copy图标)和"下载JSON"(Download图标)两个按钮。复制按钮调用exportForAI后JSON.stringify(null,2)写入剪贴板+toast提示。下载按钮同上但触发{SKU编码}.json文件下载。commit: 9b206f3
 
 ---
 
@@ -858,9 +858,9 @@ M2（拍摄任务/照片索引/NAS扫描）和 M10（认知底座）的任务在
 ## 进度统计（agent 每次启动时更新这一行）
 
 ```
-最后更新: 2026-04-19
-已完成: 0 / 19 个任务
-当前正在执行: T00-a
-下一个待执行: T00-a
+最后更新: 2026-03-05
+已完成: 20 / 21 个任务
+当前正在执行: 无
+下一个待执行: T04-z (M1整体验收)
 预计 M1 完成: ____
 ```

@@ -153,6 +153,67 @@ async function main() {
   }
   console.log('✅ 贵金属初始市价已插入 (2条)');
 
+  // 6. 工艺字典 (8种)
+  const crafts = [
+    { name: '手工雕刻', description: '匠人手工雕刻', sortOrder: 1 },
+    { name: '机雕', description: '电脑数控雕刻', sortOrder: 2 },
+    { name: '半手工', description: '机雕粗坯+手工精修', sortOrder: 3 },
+    { name: '素面', description: '无雕刻，抛光素面', sortOrder: 4 },
+    { name: '镂空雕', description: '镂空透雕工艺', sortOrder: 5 },
+    { name: '浮雕', description: '浅浮雕/深浮雕', sortOrder: 6 },
+    { name: '圆雕', description: '立体圆雕', sortOrder: 7 },
+    { name: '未知', description: '工艺待确认', sortOrder: 99 },
+  ];
+  for (const c of crafts) {
+    await prisma.dictCraft.upsert({
+      where: { name: c.name },
+      update: { description: c.description },
+      create: c,
+    });
+  }
+  console.log('✅ 工艺字典已插入/更新 (8种)');
+
+  // 7. 卖点字典 (9种)
+  const sellingPoints = [
+    { name: '送礼', sortOrder: 1 },
+    { name: '自戴', sortOrder: 2 },
+    { name: '收藏', sortOrder: 3 },
+    { name: '投资', sortOrder: 4 },
+    { name: '孤品', sortOrder: 5 },
+    { name: '性价比', sortOrder: 6 },
+    { name: '名家出品', sortOrder: 7 },
+    { name: '完美无瑕', sortOrder: 8 },
+    { name: '稀有料子', sortOrder: 9 },
+  ];
+  for (const sp of sellingPoints) {
+    await prisma.dictSellingPoint.upsert({
+      where: { name: sp.name },
+      update: {},
+      create: sp,
+    });
+  }
+  console.log('✅ 卖点字典已插入/更新 (9种)');
+
+  // 8. 人群字典 (8种)
+  const audiences = [
+    { name: '年轻女性', sortOrder: 1 },
+    { name: '中年女性', sortOrder: 2 },
+    { name: '中年男性', sortOrder: 3 },
+    { name: '资深藏家', sortOrder: 4 },
+    { name: '新手入门', sortOrder: 5 },
+    { name: '送长辈', sortOrder: 6 },
+    { name: '送爱人', sortOrder: 7 },
+    { name: '送朋友', sortOrder: 8 },
+  ];
+  for (const a of audiences) {
+    await prisma.dictAudience.upsert({
+      where: { name: a.name },
+      update: {},
+      create: a,
+    });
+  }
+  console.log('✅ 人群字典已插入/更新 (8种)');
+
   console.log('🎉 基础配置数据初始化完成！');
 }
 

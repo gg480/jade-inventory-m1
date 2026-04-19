@@ -124,7 +124,7 @@ function InventoryTab() {
   const [allBatches, setAllBatches] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, size: 20, pages: 0 });
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ materialCategory: '', materialId: '', status: '', keyword: '', counter: '', batchId: '', minPrice: '', maxPrice: '', purchaseStartDate: '', purchaseEndDate: '' });
+  const [filters, setFilters] = useState({ materialCategory: '', materialId: '', status: '', keyword: '', counter: '', batchId: '', minPrice: '', maxPrice: '', purchaseStartDate: '', purchaseEndDate: '', priorityTier: '', shootingStatus: '', contentStatus: '' });
   const [searchField, setSearchField] = useState('all');
   const [activeStatuses, setActiveStatuses] = useState<Set<string>>(new Set(['in_stock']));
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -331,6 +331,9 @@ function InventoryTab() {
       }
       if (filters.counter) params.counter = filters.counter;
       if (filters.batchId) params.batch_id = filters.batchId;
+      if (filters.priorityTier) params.priorityTier = filters.priorityTier;
+      if (filters.shootingStatus) params.shootingStatus = filters.shootingStatus;
+      if (filters.contentStatus) params.contentStatus = filters.contentStatus;
       params.sort_by = sortBy;
       params.sort_order = sortOrder;
       const data = await itemsApi.getItems(params);
@@ -928,7 +931,7 @@ function InventoryTab() {
             </div>
             <div className="flex items-end gap-2">
               <Button size="sm" onClick={() => { setPagination(p => ({ ...p, page: 1 })); fetchItems(); }} className="h-9"><Search className="h-3 w-3 mr-1" />搜索</Button>
-              <Button size="sm" variant="outline" onClick={() => { setFilters({ materialCategory: '', materialId: '', status: '', keyword: '', counter: '', batchId: '', minPrice: '', maxPrice: '', purchaseStartDate: '', purchaseEndDate: '' }); setActiveStatuses(new Set(['in_stock'])); }} className="h-9">重置</Button>
+              <Button size="sm" variant="outline" onClick={() => { setFilters({ materialCategory: '', materialId: '', status: '', keyword: '', counter: '', batchId: '', minPrice: '', maxPrice: '', purchaseStartDate: '', purchaseEndDate: '', priorityTier: '', shootingStatus: '', contentStatus: '' }); setActiveStatuses(new Set(['in_stock'])); }} className="h-9">重置</Button>
             </div>
           </div>
           {/* More Filters Toggle */}
@@ -953,10 +956,47 @@ function InventoryTab() {
               <div className="space-y-1"><Label className="text-xs">最高售价</Label><Input type="number" placeholder="¥" value={filters.maxPrice} onChange={e => setFilters(f => ({ ...f, maxPrice: e.target.value }))} className="h-9" min="0" /></div>
               <div className="space-y-1"><Label className="text-xs">采购起始日期</Label><Input type="date" value={filters.purchaseStartDate} onChange={e => setFilters(f => ({ ...f, purchaseStartDate: e.target.value }))} className="h-9" /></div>
               <div className="space-y-1"><Label className="text-xs">采购截止日期</Label><Input type="date" value={filters.purchaseEndDate} onChange={e => setFilters(f => ({ ...f, purchaseEndDate: e.target.value }))} className="h-9" /></div>
+              <div className="space-y-1"><Label className="text-xs">档位</Label>
+                <Select value={filters.priorityTier || 'all'} onValueChange={v => setFilters(f => ({ ...f, priorityTier: v === 'all' ? '' : v }))}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="全部" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部</SelectItem>
+                    <SelectItem value="A">A</SelectItem>
+                    <SelectItem value="B">B</SelectItem>
+                    <SelectItem value="C">C</SelectItem>
+                    <SelectItem value="未定">未定</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">拍摄状态</Label>
+                <Select value={filters.shootingStatus || 'all'} onValueChange={v => setFilters(f => ({ ...f, shootingStatus: v === 'all' ? '' : v }))}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="全部" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部</SelectItem>
+                    <SelectItem value="未拍">未拍</SelectItem>
+                    <SelectItem value="白底完成">白底完成</SelectItem>
+                    <SelectItem value="细节完成">细节完成</SelectItem>
+                    <SelectItem value="场景完成">场景完成</SelectItem>
+                    <SelectItem value="全套完成">全套完成</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">内容状态</Label>
+                <Select value={filters.contentStatus || 'all'} onValueChange={v => setFilters(f => ({ ...f, contentStatus: v === 'all' ? '' : v }))}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="全部" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部</SelectItem>
+                    <SelectItem value="未生产">未生产</SelectItem>
+                    <SelectItem value="已生产">已生产</SelectItem>
+                    <SelectItem value="已发布">已发布</SelectItem>
+                    <SelectItem value="多平台发布">多平台发布</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
           {/* Active filter tags */}
-          <ActiveFilterTags filters={filters} materials={materials} allBatches={allBatches} allCounters={allCounters} onClearAll={() => { setFilters({ materialCategory: '', materialId: '', status: '', keyword: '', counter: '', batchId: '', minPrice: '', maxPrice: '', purchaseStartDate: '', purchaseEndDate: '' }); setActiveStatuses(new Set(['in_stock'])); }} onClear={(key: string) => setFilters(f => ({ ...f, [key]: '' }))} />
+          <ActiveFilterTags filters={filters} materials={materials} allBatches={allBatches} allCounters={allCounters} onClearAll={() => { setFilters({ materialCategory: '', materialId: '', status: '', keyword: '', counter: '', batchId: '', minPrice: '', maxPrice: '', purchaseStartDate: '', purchaseEndDate: '', priorityTier: '', shootingStatus: '', contentStatus: '' }); setActiveStatuses(new Set(['in_stock'])); }} onClear={(key: string) => setFilters(f => ({ ...f, [key]: '' }))} />
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center gap-2 flex-wrap">
               <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 h-9" onClick={() => setShowCreate(true)}><Plus className="h-3 w-3 mr-1" />新增入库</Button>
@@ -1055,7 +1095,7 @@ function InventoryTab() {
                     <SortableHead field="selling_price" align="right">售价</SortableHead>
                     <TableHead className="text-center">毛利</TableHead>
                     <SortableHead field="purchase_date">采购日期</SortableHead>
-                    <TableHead>状态</TableHead><TableHead>库龄</TableHead><TableHead className="text-right">操作</TableHead>
+                    <TableHead>状态</TableHead><TableHead>档位</TableHead><TableHead>拍摄</TableHead><TableHead>内容</TableHead><TableHead>库龄</TableHead><TableHead className="text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1133,6 +1173,24 @@ function InventoryTab() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.purchaseDate || '-'}</TableCell>
                       <TableCell><StatusBadge status={item.status} /></TableCell>
+                      <TableCell>
+                        {(() => {
+                          const tier = item.priorityTier || '未定';
+                          const tierColors: Record<string, string> = {
+                            'A': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
+                            'B': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+                            'C': 'bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400 border-gray-200 dark:border-gray-800',
+                            '未定': 'bg-slate-100 text-slate-500 dark:bg-slate-900/30 dark:text-slate-400 border-slate-200 dark:border-slate-800',
+                          };
+                          return <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${tierColors[tier] || tierColors['未定']}`}>{tier}</Badge>;
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800">{item.shootingStatus || '未拍'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800">{item.contentStatus || '未生产'}</Badge>
+                      </TableCell>
                       <TableCell className={item.ageDays > 90 ? 'text-red-600 font-medium' : ''}>{item.ageDays != null ? `${item.ageDays}天` : '-'}</TableCell>
                       <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">

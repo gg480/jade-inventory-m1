@@ -139,6 +139,7 @@ export async function POST(req: Request) {
       skip_empty_lines: true,
       trim: true,
       bom: true,
+      relax_column_count: true, // 容忍列数不一致
     }) as Record<string, string>[];
 
     if (rows.length === 0) {
@@ -214,12 +215,23 @@ export async function POST(req: Request) {
 
         if (!item && matchKey) {
           // Search by matchKey stored in notes as [MK:xxx]
+          // Prefer in_stock items over sold items
           item = await db.item.findFirst({
             where: {
               notes: { contains: `[MK:${matchKey}]` },
               isDeleted: false,
+              status: 'in_stock',
             },
           });
+          // Fallback to any non-deleted item
+          if (!item) {
+            item = await db.item.findFirst({
+              where: {
+                notes: { contains: `[MK:${matchKey}]` },
+                isDeleted: false,
+              },
+            });
+          }
         }
 
         if (!item && name) {
@@ -261,6 +273,9 @@ export async function POST(req: Request) {
           const newSkuCode = await generateSkuCode(materialId, typeId);
           const cost = costRaw ? parseFloat(costRaw) : null;
 
+          const matchKeyNote = matchKey ? `[MK:${matchKey}]` : '';
+          const combinedNotes = [matchKeyNote, note].filter(Boolean).join(' ') || null;
+
           item = await db.item.create({
             data: {
               skuCode: newSkuCode,
@@ -272,6 +287,7 @@ export async function POST(req: Request) {
               sellingPrice: actualPrice,
               status: 'sold', // Already sold
               purchaseDate: saleDate || null,
+              notes: combinedNotes,
             },
           });
           autoCreatedItem = true;

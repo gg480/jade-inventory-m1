@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogDescription, AlertDialogCancel } from '@/components/ui/alert-dialog';
 
-import { Plus, Pencil, Trash2, Factory, Calculator, History, Download, Upload, Database, AlertTriangle, Loader2, FileSpreadsheet, FileDown, CheckCircle, XCircle, Clock, Phone, Gem, Box, Tag, DollarSign, Settings, ShieldCheck, Grid, Package, ShoppingCart, Users, Layers, Search, X, Hash, Crown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Factory, Calculator, History, Download, Upload, Database, AlertTriangle, Loader2, FileSpreadsheet, FileDown, CheckCircle, XCircle, Clock, Phone, Gem, Box, Tag, DollarSign, Settings, ShieldCheck, Grid, Package, ShoppingCart, Users, Layers, Search, X, Hash, Crown, Wrench } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // ========== 材质大类选项 ==========
@@ -105,6 +105,9 @@ function SettingsTab() {
   const [materials, setMaterials] = useState<any[]>([]);
   const [types, setTypes] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
+  const [crafts, setCrafts] = useState<any[]>([]);
+  const [sellingPoints, setSellingPoints] = useState<any[]>([]);
+  const [audiences, setAudiences] = useState<any[]>([]);
   const [configs, setConfigs] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,6 +140,21 @@ function SettingsTab() {
   const [tagForm, setTagForm] = useState({ name: '', groupName: '' });
   const [tagGroupFilter, setTagGroupFilter] = useState('');
   const [editTag, setEditTag] = useState<any>(null);
+
+  // Craft dialog states
+  const [showCreateCraft, setShowCreateCraft] = useState(false);
+  const [editCraft, setEditCraft] = useState<any>(null);
+  const [craftForm, setCraftForm] = useState({ name: '', description: '', sortOrder: '' });
+
+  // SellingPoint dialog states
+  const [showCreateSellingPoint, setShowCreateSellingPoint] = useState(false);
+  const [editSellingPoint, setEditSellingPoint] = useState<any>(null);
+  const [sellingPointForm, setSellingPointForm] = useState({ name: '', sortOrder: '' });
+
+  // Audience dialog states
+  const [showCreateAudience, setShowCreateAudience] = useState(false);
+  const [editAudience, setEditAudience] = useState<any>(null);
+  const [audienceForm, setAudienceForm] = useState({ name: '', sortOrder: '' });
 
   // Metal reprice states
   const [repricePreview, setRepricePreview] = useState<any>(null);
@@ -284,6 +302,11 @@ function SettingsTab() {
         setTags(tg || []);
         setConfigs(c || []);
         setSuppliers(s?.items || []);
+
+        // Fetch additional dicts in background (non-blocking)
+        dictsApi.getCrafts(true).then(d => setCrafts(d || [])).catch(() => {});
+        dictsApi.getSellingPoints(true).then(d => setSellingPoints(d || [])).catch(() => {});
+        dictsApi.getAudiences(true).then(d => setAudiences(d || [])).catch(() => {});
       } catch { toast.error('加载设置数据失败'); } finally { setLoading(false); }
     }
     fetchAll();
@@ -433,6 +456,75 @@ function SettingsTab() {
   function openEditTagDialog(tag: any) {
     setEditTag(tag);
     setTagForm({ name: tag.name || '', groupName: tag.groupName || '' });
+  }
+
+  // Craft handlers
+  async function handleCreateCraft() {
+    try { await dictsApi.createCraft({ ...craftForm, sortOrder: craftForm.sortOrder ? parseInt(craftForm.sortOrder) : 0 }); toast.success('工艺创建成功'); setShowCreateCraft(false); setCraftForm({ name: '', description: '', sortOrder: '' }); const d = await dictsApi.getCrafts(true); setCrafts(d || []); } catch (e: any) { toast.error(e.message || '创建失败'); }
+  }
+
+  async function handleUpdateCraft() {
+    if (!editCraft) return;
+    try { await dictsApi.updateCraft(editCraft.id, { ...craftForm, sortOrder: craftForm.sortOrder ? parseInt(craftForm.sortOrder) : undefined }); toast.success('工艺更新成功'); setEditCraft(null); setCraftForm({ name: '', description: '', sortOrder: '' }); const d = await dictsApi.getCrafts(true); setCrafts(d || []); } catch (e: any) { toast.error(e.message || '更新失败'); }
+  }
+
+  async function handleDeleteCraft(id: number) {
+    try { await dictsApi.deleteCraft(id); toast.success('工艺已删除/停用'); const d = await dictsApi.getCrafts(true); setCrafts(d || []); } catch (e: any) { toast.error(e.message || '删除失败'); }
+  }
+
+  async function toggleCraftActive(id: number, isActive: boolean) {
+    try { await dictsApi.updateCraft(id, { isActive: !isActive }); setCrafts(c => c.map(x => x.id === id ? { ...x, isActive: !isActive } : x)); toast.success(isActive ? '已停用' : '已启用'); } catch (e: any) { toast.error(e.message); }
+  }
+
+  function openEditCraftDialog(c: any) {
+    setEditCraft(c);
+    setCraftForm({ name: c.name || '', description: c.description || '', sortOrder: c.sortOrder != null ? String(c.sortOrder) : '' });
+  }
+
+  // SellingPoint handlers
+  async function handleCreateSellingPoint() {
+    try { await dictsApi.createSellingPoint({ ...sellingPointForm, sortOrder: sellingPointForm.sortOrder ? parseInt(sellingPointForm.sortOrder) : 0 }); toast.success('卖点创建成功'); setShowCreateSellingPoint(false); setSellingPointForm({ name: '', sortOrder: '' }); const d = await dictsApi.getSellingPoints(true); setSellingPoints(d || []); } catch (e: any) { toast.error(e.message || '创建失败'); }
+  }
+
+  async function handleUpdateSellingPoint() {
+    if (!editSellingPoint) return;
+    try { await dictsApi.updateSellingPoint(editSellingPoint.id, { ...sellingPointForm, sortOrder: sellingPointForm.sortOrder ? parseInt(sellingPointForm.sortOrder) : undefined }); toast.success('卖点更新成功'); setEditSellingPoint(null); setSellingPointForm({ name: '', sortOrder: '' }); const d = await dictsApi.getSellingPoints(true); setSellingPoints(d || []); } catch (e: any) { toast.error(e.message || '更新失败'); }
+  }
+
+  async function handleDeleteSellingPoint(id: number) {
+    try { await dictsApi.deleteSellingPoint(id); toast.success('卖点已删除/停用'); const d = await dictsApi.getSellingPoints(true); setSellingPoints(d || []); } catch (e: any) { toast.error(e.message || '删除失败'); }
+  }
+
+  async function toggleSellingPointActive(id: number, isActive: boolean) {
+    try { await dictsApi.updateSellingPoint(id, { isActive: !isActive }); setSellingPoints(sp => sp.map(x => x.id === id ? { ...x, isActive: !isActive } : x)); toast.success(isActive ? '已停用' : '已启用'); } catch (e: any) { toast.error(e.message); }
+  }
+
+  function openEditSellingPointDialog(sp: any) {
+    setEditSellingPoint(sp);
+    setSellingPointForm({ name: sp.name || '', sortOrder: sp.sortOrder != null ? String(sp.sortOrder) : '' });
+  }
+
+  // Audience handlers
+  async function handleCreateAudience() {
+    try { await dictsApi.createAudience({ ...audienceForm, sortOrder: audienceForm.sortOrder ? parseInt(audienceForm.sortOrder) : 0 }); toast.success('人群创建成功'); setShowCreateAudience(false); setAudienceForm({ name: '', sortOrder: '' }); const d = await dictsApi.getAudiences(true); setAudiences(d || []); } catch (e: any) { toast.error(e.message || '创建失败'); }
+  }
+
+  async function handleUpdateAudience() {
+    if (!editAudience) return;
+    try { await dictsApi.updateAudience(editAudience.id, { ...audienceForm, sortOrder: audienceForm.sortOrder ? parseInt(audienceForm.sortOrder) : undefined }); toast.success('人群更新成功'); setEditAudience(null); setAudienceForm({ name: '', sortOrder: '' }); const d = await dictsApi.getAudiences(true); setAudiences(d || []); } catch (e: any) { toast.error(e.message || '更新失败'); }
+  }
+
+  async function handleDeleteAudience(id: number) {
+    try { await dictsApi.deleteAudience(id); toast.success('人群已删除/停用'); const d = await dictsApi.getAudiences(true); setAudiences(d || []); } catch (e: any) { toast.error(e.message || '删除失败'); }
+  }
+
+  async function toggleAudienceActive(id: number, isActive: boolean) {
+    try { await dictsApi.updateAudience(id, { isActive: !isActive }); setAudiences(a => a.map(x => x.id === id ? { ...x, isActive: !isActive } : x)); toast.success(isActive ? '已停用' : '已启用'); } catch (e: any) { toast.error(e.message); }
+  }
+
+  function openEditAudienceDialog(a: any) {
+    setEditAudience(a);
+    setAudienceForm({ name: a.name || '', sortOrder: a.sortOrder != null ? String(a.sortOrder) : '' });
   }
 
   // Metal reprice handlers
@@ -697,6 +789,35 @@ function SettingsTab() {
                             <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => {
                               try { await dictsApi.deleteType(t.id); toast.success('器型已删除/停用'); const tp = await dictsApi.getTypes(true); setTypes(tp || []); } catch (e: any) { toast.error(e.message); }
                             }}>{t.isActive ? '停用' : '启用'}</Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Crafts */}
+          <Card className="border-l-4 border-l-orange-400 hover:shadow-sm transition-shadow duration-200">
+            <CardHeader className="pb-2"><div className="flex items-center justify-between"><CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4 text-orange-500" />工艺 ({crafts.length})</CardTitle><Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 h-7 text-xs" onClick={() => { setShowCreateCraft(true); setCraftForm({ name: '', description: '', sortOrder: '' }); }}><Plus className="h-3 w-3 mr-1" />新增工艺</Button></div></CardHeader>
+            <CardContent>
+              <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                <Table>
+                  <TableHeader><TableRow><TableHead>名称</TableHead><TableHead>描述</TableHead><TableHead className="text-right">排序</TableHead><TableHead>状态</TableHead><TableHead className="text-right">操作</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {crafts.map(c => (
+                      <TableRow key={c.id} className={!c.isActive ? 'opacity-50' : ''}>
+                        <TableCell className="font-medium">{c.name}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{c.description || '-'}</TableCell>
+                        <TableCell className="text-right">{c.sortOrder}</TableCell>
+                        <TableCell><Badge variant={c.isActive ? 'default' : 'secondary'} className={c.isActive ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : ''}>{c.isActive ? '启用' : '停用'}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-amber-600" onClick={() => openEditCraftDialog(c)} title="编辑"><Pencil className="h-3 w-3" /></Button>
+                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => {
+                              try { await handleDeleteCraft(c.id); } catch (e: any) { toast.error(e.message); }
+                            }}>{c.isActive ? '停用' : '启用'}</Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1891,6 +2012,42 @@ function SettingsTab() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditTag(null)}>取消</Button>
             <Button onClick={handleUpdateTag} className="bg-emerald-600 hover:bg-emerald-700" disabled={!tagForm.name}>保存修改</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Craft Dialog */}
+      <Dialog open={showCreateCraft} onOpenChange={setShowCreateCraft}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>新增工艺</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>名称 *</Label><Input value={craftForm.name} onChange={e => setCraftForm(f => ({ ...f, name: e.target.value }))} placeholder="如: 手工雕刻" /></div>
+            <div className="space-y-1"><Label>描述</Label><Input value={craftForm.description} onChange={e => setCraftForm(f => ({ ...f, description: e.target.value }))} placeholder="工艺描述" /></div>
+            <div className="space-y-1"><Label>排序</Label><Input type="number" value={craftForm.sortOrder} onChange={e => setCraftForm(f => ({ ...f, sortOrder: e.target.value }))} placeholder="0" /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateCraft(false)}>取消</Button>
+            <Button onClick={handleCreateCraft} className="bg-emerald-600 hover:bg-emerald-700" disabled={!craftForm.name}>创建</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Craft Dialog */}
+      <Dialog open={editCraft !== null} onOpenChange={open => { if (!open) setEditCraft(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>编辑工艺</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>名称 *</Label><Input value={craftForm.name} onChange={e => setCraftForm(f => ({ ...f, name: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>描述</Label><Input value={craftForm.description} onChange={e => setCraftForm(f => ({ ...f, description: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>排序</Label><Input type="number" value={craftForm.sortOrder} onChange={e => setCraftForm(f => ({ ...f, sortOrder: e.target.value }))} /></div>
+            <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+              <span className="text-sm">状态</span>
+              <Button size="sm" variant={editCraft?.isActive ? 'outline' : 'default'} className={editCraft?.isActive ? 'text-orange-600' : 'bg-emerald-600 hover:bg-emerald-700'} onClick={() => { if (editCraft) toggleCraftActive(editCraft.id, editCraft.isActive); }}>{editCraft?.isActive ? '停用' : '启用'}</Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCraft(null)}>取消</Button>
+            <Button onClick={handleUpdateCraft} className="bg-emerald-600 hover:bg-emerald-700" disabled={!craftForm.name}>保存修改</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

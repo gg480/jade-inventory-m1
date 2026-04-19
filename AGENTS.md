@@ -127,3 +127,13 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed change history with bug fixes an
 2. After modifying: Update the CHANGELOG entry with actual changes (files, reasons, fixes)
 3. Update AGENTS.md if project structure, business rules, or known issues change
 4. Run `pnpm lint --quiet` and `npx tsx tests/e2e-click-test.ts` before committing
+
+## Testing
+- **Smoke Test**: `pnpm run test:smoke` — 启动自检（install→prisma→build→start→health check），约60秒
+- **API Test**: `pnpm run test:api` — vitest API 测试，需先启动 dev server
+- **E2E Test**: `npx tsx tests/e2e-click-test.ts` — 前端业务流程点击测试（79断言）
+- **Integrity**: `pnpm run test:integrity` — 数据完整性检查
+- **测试数据库**: API 测试使用独立 `test.db`，不污染开发数据库 `custom.db`
+- **测试基础设施**: `tests/api/helpers/` — setup.ts (DB钩子), client.ts (API封装), factories.ts (数据工厂)
+- **提交前最低要求**: test:smoke + lint（如涉及 API 路由则需 test:api）
+- **详细测试规则**: 见 AGENT_BRIEFING.md "测试规则" 章节

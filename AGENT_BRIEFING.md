@@ -21,10 +21,11 @@
 3. 读 AGENTS.md 了解项目结构和业务规则
 4. 读 CHANGELOG.md 最近 5 条记录，了解最新状态
 5. 执行 git 同步（见下方 git 规则）
-6. 认领 TASK_QUEUE.md 中最靠前的 status=待执行 的任务
-7. 执行任务
-8. 验收、提交、更新记录
-9. 如果时间允许，继续下一个任务；否则在 TASK_QUEUE.md 记录中断位置
+6. 执行 pnpm run test:smoke 确认环境健康
+7. 认领 TASK_QUEUE.md 中最靠前的 status=待执行 的任务
+8. 执行任务
+9. 验收、提交、更新记录
+10. 如果时间允许，继续下一个任务；否则在 TASK_QUEUE.md 记录中断位置
 ```
 
 ---
@@ -145,35 +146,23 @@ git push origin dev
 
 ## 项目现状（每次人工更新这个区块）
 
-**最后更新**：2026-04-19
-
-**代码仓库**: https://github.com/gg480/jade-inventory-m1 （基于 newjade 代码库新建）
-**原始仓库**: https://github.com/gg480/newjade （上游代码来源）
+**最后更新**：2026-04-18
 
 **当前已完成功能**：
-- 商品 CRUD（基础字段）+ SKU自动生成（ASCII纯数字编码）
-- 批次管理 + 成本分摊
-- 销售/退货记录 + 套装销售
-- 客户管理 + VIP分级
-- 操作日志（全审计）
-- 图片上传（本地存储 + Docker Volume）
-- 字典管理（材质/器型/标签）+ 智能推断
-- 贵金属市价 + 调价预览
-- CSV 导入导出（含数量列/匹配码/智能推断/去重）
-- Docker 部署（极空间 NAS + standalone模式 + entrypoint）
-- 系统配置（店铺名/密码/备份）
-- 登录认证（数据库session + 限速）
-- Dashboard看板（23+图表 + 聚合API）
-- 移动端全面适配 + 暗色模式
-
-**已知安全缺陷**（需在M1后修复）：
-- ❌ 无 API 鉴权中间件（所有API裸露）
-- ❌ 密码明文存储与比较（无PBKDF2哈希）
-- ❌ auth.ts 使用 Math.random 生成 token（应用 crypto）
+- 商品 CRUD（基础字段）
+- 批次管理
+- 销售/退货记录
+- 客户管理
+- 操作日志
+- 图片上传（本地存储）
+- 字典管理（材质/器型/标签）
+- 贵金属市价
+- CSV 导入导出
+- Docker 部署（极空间 NAS）
+- 系统配置（店铺名等）
 
 **当前卡点**：
 - 历史数据批量导入待验证（见 TASK_QUEUE 第一优先级）
-- items-csv/route.ts 使用 new PrismaClient() 而非共享实例
 
 **当前 dev 分支状态**：
 - 与 main 同步，可以直接开工
@@ -203,3 +192,36 @@ git push origin dev
 如果某个任务执行后 agent browser QA 发现页面有明显问题，
 在 TASK_QUEUE 该任务备注里详细描述问题，status 改为"已完成-有问题"，
 继续下一个任务，等待人工介入。
+
+---
+
+## 测试规则（必须遵守）
+
+### 提交前必跑
+每个原子任务完成后、commit 前必须按顺序执行：
+1. pnpm run test:smoke（启动自检）—— 不通过不许 commit
+2. pnpm run test:api（如改动涉及 API 路由）—— 不通过不许 commit
+3. pnpm lint --quiet —— 不通过不许 commit
+4. 所有改动涉及数据库 schema 时额外跑 pnpm run test:integrity
+
+任一失败：不提交代码，在任务备注里记录失败信息，status=阻塞-测试未通过。
+
+### 改 API 时必须同步更新测试
+修改或新增任何 /api/ 路由时：
+1. 先检查 tests/api/ 下有没有对应测试文件
+2. 有就更新测试，没有就新建
+3. 测试必须包含：
+   - 正常入参返回 code=0 + 关键字段
+   - 缺失必填参数返回 code=400
+   - 非法枚举值返回 code=400
+   - 关联查询返回正确结构
+
+### 改 Schema 时
+修改 prisma/schema.prisma 后：
+1. npx prisma db push
+2. pnpm run test:integrity 确认无数据异常
+3. 有异常先修数据迁移脚本再提交
+
+### 写测试时发现 bug
+- 能明确判断是 bug 的：直接修，在任务备注里说明"顺便修复了 xxx bug"
+- 不能明确判断的：在任务备注记录，status=已完成-有问题，继续下一任务

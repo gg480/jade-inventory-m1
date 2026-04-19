@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { logAction } from '@/lib/log';
+import { PRICE_RANGES, PRIORITY_TIERS } from '@/lib/constants';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -13,6 +14,9 @@ export async function GET(req: Request) {
   const counter = searchParams.get('counter');
   const keyword = searchParams.get('keyword');
   const searchField = searchParams.get('search_field');
+  const priorityTier = searchParams.get('priorityTier');
+  const shootingStatus = searchParams.get('shootingStatus');
+  const contentStatus = searchParams.get('contentStatus');
   const sortBy = searchParams.get('sort_by') || 'created_at';
   const sortOrder = searchParams.get('sort_order') || 'desc';
 
@@ -22,6 +26,9 @@ export async function GET(req: Request) {
   if (status) where.status = status;
   if (batchId) where.batchId = parseInt(batchId);
   if (counter) where.counter = parseInt(counter);
+  if (priorityTier) where.priorityTier = priorityTier;
+  if (shootingStatus) where.shootingStatus = shootingStatus;
+  if (contentStatus) where.contentStatus = contentStatus;
   if (keyword) {
     if (searchField === 'sku') {
       where.skuCode = { contains: keyword };
@@ -134,7 +141,7 @@ async function generateSkuCode(materialId: number, typeId?: number): Promise<str
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { skuCode, name, batchId, materialId, typeId, costPrice, sellingPrice, floorPrice, origin, counter, certNo, notes, supplierId, purchaseDate, tagIds, spec } = body;
+  const { skuCode, name, batchId, materialId, typeId, costPrice, sellingPrice, floorPrice, origin, counter, certNo, craftId, era, mainColor, subColor, priceRange, storyPoints, operationNote, extraData, notes, supplierId, purchaseDate, tagIds, sellingPointIds, audienceIds, priorityTier, spec } = body;
 
   try {
     // For batch items, get materialId from batch if not provided
@@ -180,6 +187,20 @@ export async function POST(req: Request) {
       allocatedCost = finalCostPrice;
     }
 
+    // Validate new content fields
+    if (priceRange && !(PRICE_RANGES as readonly string[]).includes(priceRange)) {
+      return NextResponse.json({ code: 400, data: null, message: '价格带只接受: 走量/中档/精品' }, { status: 400 });
+    }
+    if (priorityTier && !(PRIORITY_TIERS as readonly string[]).includes(priorityTier)) {
+      return NextResponse.json({ code: 400, data: null, message: `档位只接受: ${PRIORITY_TIERS.join('/')}` }, { status: 400 });
+    }
+    if (storyPoints && storyPoints.length > 5000) {
+      return NextResponse.json({ code: 400, data: null, message: '故事点不能超过5000字符' }, { status: 400 });
+    }
+    if (operationNote && operationNote.length > 5000) {
+      return NextResponse.json({ code: 400, data: null, message: '经营笔记不能超过5000字符' }, { status: 400 });
+    }
+
     // Convert spec fields to proper types
     const specData: any = spec ? { ...spec } : null;
     if (specData) {
@@ -216,18 +237,37 @@ export async function POST(req: Request) {
         origin: origin || null,
         counter: counter != null ? parseInt(counter) : null,
         certNo: certNo || null,
+        craftId: craftId ? parseInt(craftId) : null,
+        era: era || null,
+        mainColor: mainColor || null,
+        subColor: subColor || null,
+        priceRange: priceRange || null,
+        storyPoints: storyPoints || null,
+        operationNote: operationNote || null,
+        extraData: extraData || null,
         notes: notes || null,
         supplierId: supplierId ? parseInt(supplierId) : null,
         purchaseDate: purchaseDate || null,
         status: 'in_stock',
+        priorityTier: priorityTier || '未定',
         ...(tagIds?.length ? {
           tags: { connect: tagIds.map((id: any) => ({ id: parseInt(id) })) },
+        } : {}),
+        ...(sellingPointIds?.length ? {
+          sellingPoints: {
+            create: sellingPointIds.map((spId: any) => ({ sellingPointId: parseInt(spId) })),
+          },
+        } : {}),
+        ...(audienceIds?.length ? {
+          audiences: {
+            create: audienceIds.map((aId: any) => ({ audienceId: parseInt(aId) })),
+          },
         } : {}),
         ...(specData && Object.keys(specData).length > 0 ? {
           spec: { create: specData },
         } : {}),
       },
-      include: { material: true, type: true, spec: true, tags: true },
+      include: { material: true, type: true, spec: true, tags: true, sellingPoints: { include: { sellingPoint: true } }, audiences: { include: { audience: true } } },
     });
 
     // Log create_item
