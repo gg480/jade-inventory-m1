@@ -64,7 +64,7 @@ status: 已完成
 
 ### T05-b 编写启动自检脚本
 ```
-status: 待执行
+status: 已完成
 依赖: T05-a
 涉及文件:
   - scripts/smoke-test.sh（新建）
@@ -106,6 +106,7 @@ status: 待执行
   - status=已完成
 ```
 备注: ___
+备注: T05-b完成(2026-04-19)。新建scripts/smoke-test.sh和smoke-test.bat启动自检脚本，7步顺序执行(bun install→prisma generate→prisma db push→next build→next start→health check→cleanup)。package.json新增test:smoke脚本。build日志检查error关键字排除正常命名。trap EXIT清理后台进程。幂等。实测全部7步通过，总耗时约60秒。
 
 ---
 
@@ -590,9 +591,9 @@ status: 阻塞-依赖未完成
 
 ```
 T05 系列任务数: 11
-已完成: 1
-当前执行: T05-b
-下一个: T05-b
+已完成: 2
+当前执行: T05-c
+下一个: T05-c
 ```
 
 ---
