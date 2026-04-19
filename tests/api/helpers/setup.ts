@@ -6,7 +6,6 @@
  * - resetDb: 每个测试开始前重置数据
  */
 import { PrismaClient } from '@prisma/client';
-import { execSync } from 'child_process';
 
 const prisma = new PrismaClient();
 
@@ -15,15 +14,8 @@ const prisma = new PrismaClient();
  * 在 beforeAll 中调用
  */
 export async function setupTestDb() {
-  // 确保 test.db schema 同步
-  try {
-    execSync('npx prisma db push --skip-generate', {
-      env: { ...process.env, DATABASE_URL: 'file:./prisma/db/test.db' },
-      stdio: 'pipe',
-    });
-  } catch {
-    // db push 可能因为 test.db 不存在而需要创建
-  }
+  // Schema 应该已经在测试启动前通过 prisma db push 创建
+  // 这里不做任何操作，避免在服务器运行时修改数据库文件
 }
 
 /**
@@ -37,47 +29,38 @@ export async function teardownTestDb() {
 /**
  * 重置测试数据库（删除所有数据，保留 schema）
  * 在每个测试套件前调用
+ * 使用 Prisma deleteMany 代替原始 SQL 以避免表名大小写问题
  */
 export async function resetDb() {
-  // 按外键依赖顺序删除
-  const tablenames = [
-    'operation_log',
-    'sale_returns',
-    'sale_records',
-    'bundle_sales',
-    'item_selling_point',
-    'item_audience',
-    'item_tag',
-    'item_images',
-    'item_spec',
-    'items',
-    'session',
-    'users',
-    'batches',
-    'metal_prices',
-    'customers',
-    'suppliers',
-    'dict_selling_point',
-    'dict_audience',
-    'dict_craft',
-    'dict_tag',
-    'dict_type',
-    'dict_material',
-    'sys_config',
-  ];
-
-  for (const table of tablenames) {
-    try {
-      await prisma.$executeRawUnsafe(`DELETE FROM "${table}"`);
-    } catch {
-      // 表可能为空或不存在，忽略
-    }
-  }
+  // 按外键依赖顺序删除，使用 Prisma ORM 方法避免表名大小写问题
+  try { await prisma.operationLog.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.saleReturn.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.saleRecord.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.bundleSale.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.itemSellingPoint.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.itemAudience.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.itemTag.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.itemImage.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.itemSpec.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.item.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.session.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.user.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.batch.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.metalPrice.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.customer.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.supplier.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.dictSellingPoint.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.dictAudience.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.dictCraft.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.dictTag.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.dictType.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.dictMaterial.deleteMany(); } catch { /* ignore */ }
+  try { await prisma.sysConfig.deleteMany(); } catch { /* ignore */ }
 
   // 重置 SQLite 自增序列
   try {
     await prisma.$executeRawUnsafe(
-      "DELETE FROM sqlite_sequence WHERE name IN ('items', 'sale_records', 'batches', 'customers', 'suppliers', 'dict_material', 'dict_type', 'dict_tag', 'dict_craft', 'dict_selling_point', 'dict_audience', 'item_images', 'item_spec', 'operation_log', 'metal_prices', 'bundle_sales', 'sale_returns', 'users', 'session', 'sys_config')"
+      "DELETE FROM sqlite_sequence"
     );
   } catch {
     // 忽略
@@ -95,7 +78,6 @@ export async function seedBaseDicts() {
       { key: 'admin_password', value: 'admin123', description: '管理员密码' },
       { key: 'overstock_days', value: '90', description: '压货预警天数' },
     ],
-    skipDuplicates: true,
   });
 
   // 材质字典
@@ -107,7 +89,6 @@ export async function seedBaseDicts() {
       { name: '白银', category: '贵金属', sortOrder: 4, isActive: true },
       { name: '未分类', category: '其他', sortOrder: 99, isActive: true },
     ],
-    skipDuplicates: true,
   });
 
   // 器型字典
@@ -118,7 +99,6 @@ export async function seedBaseDicts() {
       { name: '项链', specFields: JSON.stringify(['beadDiameter', 'beadCount']), sortOrder: 3, isActive: true },
       { name: '未分类', specFields: null, sortOrder: 99, isActive: true },
     ],
-    skipDuplicates: true,
   });
 
   // 工艺字典
@@ -130,7 +110,6 @@ export async function seedBaseDicts() {
       { name: '素面', sortOrder: 4, isActive: true },
       { name: '未知', sortOrder: 8, isActive: true },
     ],
-    skipDuplicates: true,
   });
 
   // 卖点字典
@@ -142,7 +121,6 @@ export async function seedBaseDicts() {
       { name: '投资', sortOrder: 4, isActive: true },
       { name: '孤品', sortOrder: 5, isActive: true },
     ],
-    skipDuplicates: true,
   });
 
   // 人群字典
@@ -153,7 +131,6 @@ export async function seedBaseDicts() {
       { name: '中年男性', sortOrder: 3, isActive: true },
       { name: '资深藏家', sortOrder: 4, isActive: true },
     ],
-    skipDuplicates: true,
   });
 
   // 标签字典
@@ -162,7 +139,6 @@ export async function seedBaseDicts() {
       { name: 'VIP', groupName: '客户等级', isActive: true },
       { name: '新品', groupName: '状态', isActive: true },
     ],
-    skipDuplicates: true,
   });
 
   // 供应商
@@ -171,7 +147,6 @@ export async function seedBaseDicts() {
       { name: '测试供应商A', contact: '张三', phone: '13800138000', isActive: true },
       { name: '测试供应商B', contact: '李四', phone: '13900139000', isActive: true },
     ],
-    skipDuplicates: true,
   });
 }
 

@@ -236,7 +236,7 @@ status: 已完成
 
 ### T05-e 为 T01 系列补 API 测试
 ```
-status: 待执行
+status: 已完成
 依赖: T05-d
 涉及文件:
   - tests/api/items.test.ts（新建）
@@ -293,6 +293,7 @@ status: 待执行
   - status=已完成（如有修 bug 注明已完成-修复N个bug）
 ```
 备注: ___
+备注: T05-e完成(2026-04-19)。items.test.ts: 28个测试覆盖POST/PUT/GET/PATCH status四个端点。items-export.test.ts: 11个测试覆盖export-for-ai端点。setup.ts修复3个bug(移除skipDuplicates/改用deleteMany/setupTestDb不再db push)。总测试数45个(6+28+11)，全部通过。
 
 ---
 
@@ -593,9 +594,9 @@ status: 阻塞-依赖未完成
 
 ```
 T05 系列任务数: 11
-已完成: 4
-当前执行: T05-e
-下一个: T05-e
+已完成: 5
+当前执行: T05-f
+下一个: T05-f
 ```
 
 ---
